@@ -164,6 +164,6 @@ cython_debug/
 # Custom
 .env
 .idea
-.redisdata/
-.tests/
-.app/log_settings.py
+redisdata/
+tests/
+./app/log_settings.py
