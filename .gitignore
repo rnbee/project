@@ -166,4 +166,4 @@ cython_debug/
 .idea
 redisdata/
 tests/
-./app/log_settings.py
+app/log_settings.py
