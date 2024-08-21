@@ -1,7 +1,7 @@
-from typing import List, Literal, Optional, Annotated
+from typing import List, Literal, Annotated
 from decimal import Decimal
 
-from pydantic import Field, BaseModel, field_validator, model_serializer
+from pydantic import Field, BaseModel, model_serializer
 
 
 class ParcelCreate(BaseModel):
@@ -62,7 +62,3 @@ class Category(BaseModel):
 
 class CategoryFilter(BaseModel):
     category_names: List[Literal['clothes', 'electronics', 'other']]
-
-    # @model_serializer()
-    # def serialize_model(self):
-    #     return {}

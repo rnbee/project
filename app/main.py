@@ -12,7 +12,7 @@ import uvicorn
 from routes.category import router as category_routes
 from routes.parcel import routes as parcel_routes
 from routes.page import router as page_routes
-from log_settings import logger
+
 
 templates = Jinja2Templates(directory="templates")
 app = FastAPI()

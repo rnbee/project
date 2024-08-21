@@ -1,6 +1,5 @@
 from datetime import datetime, timedelta
 from typing import Tuple
-import logging
 import json
 
 import mysql.connector
@@ -8,7 +7,6 @@ import requests
 import redis
 import pika
 
-logging.basicConfig(level=logging.INFO, filename="py_log.log",filemode="w")
 
 connection = pika.BlockingConnection(
     pika.ConnectionParameters(host='rabbitmq', port=5672))

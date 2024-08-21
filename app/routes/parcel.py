@@ -12,7 +12,7 @@ from schemas import ParcelId, ParcelInfo, ParcelCreate, CategoryFilter
 from models import Parcel, Category
 from crud import get_parcel_by_id, get_category_id_by_name
 from redis_conn import get_redis_conn
-from log_settings import logger
+
 
 routes = APIRouter(
     prefix="/parcel",
@@ -58,13 +58,12 @@ async def register_parcel(request: Request,
         # вычесляет стоимость доставки и сохраняет данные в db
         # consumer возвращает id зарегистрированной посылки
         parcel_info = await rpc_client.call(parcel_model)
-        logger.info(f"parcel info: {parcel_info}")
+
         async with redis_client.pipeline() as pipe:
             pipe.hset(f"session_id:{session_id}", f"parcel:{parcel_info['id']}", json.dumps(parcel_info).encode())
             pipe.expire(f"session_id:{session_id}", timedelta(hours=1))
             await pipe.execute()
     except Exception as error:
-        logger.error(error)
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     return {'id': parcel_info['id']}
@@ -113,7 +112,6 @@ async def get_user_parcels(request: Request,
 
     if not parcels:
         return Response(status_code=status.HTTP_204_NO_CONTENT)
-    logger.info(f"parcels: {parcels}")
     return parcels
 
 
