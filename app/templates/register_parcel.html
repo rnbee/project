@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Регистрация посылки</title>
+    <link href="{{ url_for('static', path='/register_styles.css') }}" rel="stylesheet">
+</head>
+<body>
+    <h1>Регистрация новой посылки</h1>
+
+    <form id="parcelForm">
+        <label for="parcel_name">Имя посылки</label>
+        <input type="text" id="parcel_name" name="parcel_name" placeholder="Введите имя посылки" required>
+
+        <label for="weight">Вес в кг.</label>
+        <input type="number" id="weight" name="weight" min="1" placeholder="Минимум 1 кг." required>
+
+        <label for="parcel_category">Категория</label>
+        <select id="parcel_category" name="parcel_category" required>
+            <option value="clothes">Clothes</option>
+            <option value="electronics">Electronics</option>
+            <option value="other">Other</option>
+        </select>
+
+        <label for="cost">Стоимость посылки в USD</label>
+        <input type="number" id="cost" name="cost" step="0.01" min="0.01" placeholder="Введите сумму в $" required>
+
+        <input type="submit" value="Зарегистрировать посылку">
+    </form>
+
+    <script>
+        document.getElementById('parcelForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+
+            const formData = {
+                parcel_name: document.getElementById('parcel_name').value,
+                weight: parseFloat(document.getElementById('weight').value),
+                parcel_category: document.getElementById('parcel_category').value,
+                cost: parseFloat(document.getElementById('cost').value)
+            };
+
+            fetch('/parcel', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(formData)
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log('Success:', data);
+                document.getElementById("result").innerHTML = `
+                    <div class="result">
+                        <h2>Посылка успешно зареггистрирована</h2>
+                        <p>ID арегистрированной посылки: <strong>${data.id}</strong></p>
+                    </div>
+                `;
+
+                document.getElementById("parcel_name").value = '',
+                document.getElementById("weight").value = '',
+                document.getElementById("cost").value = ''
+            })
+            .catch((error) => {
+                console.error('Error:', error);
+            });
+        });
+    </script>
+    <div id="result">
+        {% if parcel_id %}
+        <div class="result">
+            <h2>Посылка успешно зареггистрирована</h2>
+            <p>ID арегистрированной посылки: <strong>{{ parcel_id['id'] }}</strong></p>
+        </div>
+        {% endif %}
+    </div>
+</body>
+</html>

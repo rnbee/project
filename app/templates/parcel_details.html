@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Получить данные о посылке</title>
+    <link href="{{ url_for('static', path='/parcel_details_styles.css') }}" rel="stylesheet">
+</head>
+<body>
+
+<div class="container">
+    <h1>Получить данные о посылке</h1>
+    <form id="parcelForm">
+        <label for="parcelId">Введите ID посылки</label>
+        <input type="text" id="parcelId" name="parcelId" required>
+        <button type="button" id="submitButton">Получить данные</button>
+    </form>
+    <div id="result" class="result"></div>
+</div>
+
+<script>
+    document.getElementById('submitButton').addEventListener('click', function () {
+        const parcelId = document.getElementById('parcelId').value;
+
+        fetch(`/parcel/${parcelId}`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('result').innerHTML = `
+                    <h3>Данные о посылке:</h3>
+                    <table>
+                        <tr>
+                            <th>ID</th>
+                            <td>${data.id || Неопределено}</td>
+                        </tr>
+                        <tr>
+                            <th>Название</th>
+                            <td>${data.parcel_name || Неопределено}</td>
+                        </tr>
+                        <tr>
+                            <th>Вес</th>
+                            <td>${data.weight || Неопределено}</td>
+                        </tr>
+                        <tr>
+                            <th>Тип</th>
+                            <td>${data.parcel_category || Неопределено}</td>
+                        </tr>
+                        <tr>
+                            <th>Стоимость</th>
+                            <td>${data.cost || Неопределено}</td>
+                        </tr>
+                        <tr>
+                            <th>Стоимость доставки</th>
+                            <td>${data.delivery_cost || 'Не рассчитано'}</td>
+                        </tr>
+                    </table>
+                `;
+            })
+            .catch(error => {
+                document.getElementById('result').innerHTML = `<p class="error">Ошибка: ${error.message}</p>`;
+            });
+    });
+</script>
+
+</body>
+</html>

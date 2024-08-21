@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Посылки пользователя</title>
+    <link href="{{ url_for('static', path='/styles_parcel.css') }}" rel="stylesheet">
+</head>
+<body>
+    <h1>Посылки пользователя</h1>
+
+    <form id="parcelForm">
+        <label for="category_names">Категории</label>
+            <input type="text" id="category_names" autocomplete="off">
+        <div id="autocomplete-suggestions" class="autocomplete-suggestions"></div>
+
+        <label for="has_delivery_cost">Стоимость доставки</label>
+        <select id="has_delivery_cost" name="has_delivery_cost">
+            <option value="">Не важно</option>
+            <option value="true">Есть</option>
+            <option value="false">Нет</option>
+        </select>
+
+        <label for="skip">Пропустить:</label>
+        <input type="number" id="skip" name="skip" value="{{ request.query_params.get('skip', 0) }}">
+
+        <label for="limit">Количество:</label>
+        <input type="number" id="limit" name="limit" value="{{ request.query_params.get('limit', 10) }}">
+
+        <button type="submit">Применить фильтры</button>
+    </form>
+
+    <script>
+        const categories = ["clothes", "electronics", "other"];
+
+        const inputField = document.getElementById('category_names');
+        const suggestionsBox = document.getElementById('autocomplete-suggestions');
+
+        inputField.addEventListener('input', function() {
+            const inputText = inputField.value.toLowerCase().split(/\s+/).pop();
+            suggestionsBox.innerHTML = '';
+
+            if (inputText.length > 0) {
+                const filteredSuggestions = categories.filter(category =>
+                    category.toLowerCase().startsWith(inputText)
+                );
+
+                filteredSuggestions.forEach(suggestion => {
+                    const suggestionElement = document.createElement('div');
+                    suggestionElement.className = 'autocomplete-suggestion';
+                    suggestionElement.innerText = suggestion;
+                    suggestionElement.addEventListener('click', function() {
+                        const currentInput = inputField.value.split(/\s+/);
+                        currentInput.pop();
+                        currentInput.push(suggestion);
+                        inputField.value = currentInput.join(' ') + ' ';
+                        suggestionsBox.innerHTML = '';
+                    });
+                    suggestionsBox.appendChild(suggestionElement);
+                });
+            }
+        });
+        document.getElementById('parcelForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+
+            const selectElement = document.getElementById('has_delivery_cost');
+            const selectedText = selectElement.options[selectElement.selectedIndex].text;
+
+            let bool_val
+
+            if (selectedText === 'Есть') {
+                 bool_val = 'True';
+            } else if (selectedText === 'Нет') {
+                 bool_val = 'False';
+            } else if (selectedText == 'Не важно') {
+                 bool_val = 'None'
+            }
+            console.log(document.getElementById('category_names').value)
+            const formData = {
+                has_delivery_cost: bool_val,
+                category_names: document.getElementById('category_names').value,
+                skip: document.getElementById('skip').value,
+                limit: parseFloat(document.getElementById('limit').value)
+            };
+
+            const queryParams = new URLSearchParams(formData).toString();
+
+            fetch(`/parcel?${queryParams}`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log('Success:', data);
+                let tableHTML
+                if (data.length > 0) {
+                     tableHTML = `
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Имя посылки</th>
+                                    <th>Категория</th>
+                                    <th>Вес</th>
+                                    <th>Стоимость</th>
+                                    <th>Стоимость доставки</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                    `
+                };
+
+                data.forEach(data => {
+                    tableHTML += `
+                        <tr>
+                            <td>${data.id}</td>
+                            <td>${data.parcel_name}</td>
+                            <td>${data.parcel_category}</td>
+                            <td>${data.weight}</td>
+                            <td>${data.cost}</td>
+                            <td>${data.delivery_cost !== null ? data.delivery_cost : 'Нет'}</td>
+                        </tr>
+                    `
+                });
+
+                tableHTML += `
+                    </tbody>
+                </table>
+                `;
+
+                document.getElementById("result").innerHTML = tableHTML
+
+                document.getElementById("category_names").value = ''
+            })
+            .catch((error) => {
+                console.error('Error:', error);
+            });
+        });
+    </script>
+
+    <div id="result"></div>
+</body>
+</html>

@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Parcel Categories</title>
+    <link href="{{ url_for('static', path='/styles.css') }}" rel="stylesheet">
+</head>
+<body>
+    <h1>Parcel Categories</h1>
+
+    <!-- Проверка на наличие категорий -->
+    {% if categories %}
+        <ul>
+            <!-- Перебор всех категорий и их отображение как список -->
+            {% for category in categories %}
+                <li>
+                    <strong>ID:</strong> {{ category.id }} - <strong>Name:</strong> {{ category.category_name }}
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>No categories found.</p>
+    {% endif %}
+</body>
+</html>

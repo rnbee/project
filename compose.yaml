@@ -1,0 +1,73 @@
+services:
+  app:
+    build: .
+    container_name: international_delivery_service
+    ports:
+      - "8081:8081"
+    develop:
+      watch:
+        - action: rebuild
+          path: ./app
+          target: /project/app
+    depends_on:
+      - db
+      - message_broker
+      - register_parcel_worker
+
+  redis:
+    image: redis:7.4.0-alpine
+    hostname: my_redis
+    ports:
+      - "6380:6379"
+    deploy:
+      resources:
+        limits:
+          cpus: '0.25'
+          memory: 256M
+        reservations:
+          cpus: '0.10'
+          memory: 128M
+#    volumes:
+#      - ./redisdata:/data
+    command: >
+      sh -c '
+        mkdir -p /usr/local/etc/redis &&
+        echo "bind 0.0.0.0" > /usr/local/etc/redis/redis.conf &&
+        echo "appendonly yes" >> /usr/local/etc/redis/redis.conf &&
+        echo "user default on nopass ~* +@all" > /usr/local/etc/redis/users.acl &&
+        redis-server /usr/local/etc/redis/redis.conf --aclfile /usr/local/etc/redis/users.acl
+      '
+  db:
+    image: mysql:9.0.1
+    hostname: mysql_db
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: "root"
+      MYSQL_PASSWORD: "root"
+      MYSQL_USER: "enemy"
+      MYSQL_DATABASE: "project"
+    volumes:
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+
+  message_broker:
+    image: rabbitmq:3.13.6-alpine
+    hostname: rabbitmq
+    restart: always
+#    ports:
+#      - "15672:15672"
+
+  register_parcel_worker:
+    build: ./worker/
+    container_name: register_worker
+    restart: always
+    depends_on:
+      - redis
+      - message_broker
+    develop:
+      watch:
+        - action: rebuild
+          path: ./worker/
+          target: /register_parcel_worker
+    entrypoint: sh -c "sleep 10 && poetry run python main.py"
+
